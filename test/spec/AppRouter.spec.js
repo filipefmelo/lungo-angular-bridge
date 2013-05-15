@@ -2,7 +2,7 @@
  
 describe('AppRouter', function() { 
   
-  beforeEach(function() {
+  beforeEach(function() { 
     Lungo.Router.history = [];
     spyOn(Lungo.View.Aside, 'show');
     spyOn(Lungo, 'dom').andCallFake(function(selector) {
@@ -165,7 +165,7 @@ describe('AppRouter', function() {
         });
       });
     });
-    
+        
     //TODO(otupman): this is copy and paste from above; should make it better.
     describe('with sections and articles', function() {
       beforeEach(function() {  
@@ -193,7 +193,7 @@ describe('AppRouter', function() {
     });
     
     //TODO(otupman): More copy paste? Ow, my eyes!
-    describe('with sections and articles', function() {
+    describe('with sections and articles AND IDs', function() {
       beforeEach(function() {  
         navigateTo('/first/article/1');
         navigateTo('/second/article/2');
