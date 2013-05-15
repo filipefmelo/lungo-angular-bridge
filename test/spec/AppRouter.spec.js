@@ -2,7 +2,7 @@
  
 describe('AppRouter', function() { 
   
-  beforeEach(function() {
+  beforeEach(function() { 
     Lungo.Router.history = [];
     spyOn(Lungo.View.Aside, 'show');
     spyOn(Lungo, 'dom').andCallFake(function(selector) {
@@ -13,12 +13,24 @@ describe('AppRouter', function() {
       response.attr = jasmine.createSpy('attr');
       return response;
     });
+    
+    // Here we fake $location.path so that we can manually emit $routeChangeSuccess
+    angular.mock.inject(function($location, $rootScope) {
+      $location.oldPath = $location.path;
+      spyOn($location, 'path').andCallFake(function(path) {
+        if(path) {
+          $location.oldPath(path);
+          $rootScope.$emit('$routeChangeSuccess', {});
+        } else {
+          return $location.oldPath();
+        }
+      });
+    });
   });
 
   function navigateTo(path) {
     angular.mock.inject(function($location, $rootScope) {
       $location.path(path);
-      $rootScope.$emit('$routeChangeSuccess', {}); 
     });
   }
 
@@ -27,6 +39,8 @@ describe('AppRouter', function() {
         AppRouter.instance = new AppRouter(Lungo, $location, $rootScope);
     })
   });
+  
+  xdescribe('need to test labRouterService', function() {});
 
   describe('Moving between articles in a section', function() { 
     beforeEach(function() {
@@ -118,6 +132,91 @@ describe('AppRouter', function() {
   			expect($location.path()).toBe('/third');
   		});	
   	});
+  });
+
+  describe('forward, forward, back, back', function() {
+    beforeEach(function() {
+        spyOn(Lungo.Router, 'section');
+        spyOn(Lungo.Router, 'back');
+        spyOn(Lungo.Router, 'article');
+    });
+    
+    describe('with just sections', function() {
+      beforeEach(function() {  
+        navigateTo('/first');
+        navigateTo('/second');
+        navigateTo('/third');
+      });
+  
+      it('should go back twice - AppRouter.instance.back()', function() {
+        AppRouter.instance.back();        
+        AppRouter.instance.back();
+        
+        angular.mock.inject(function($location) {
+          expect($location.path()).toBe('/first');
+        });  
+      });
+  
+      it('should go back twice - navigateTo', function() {
+        navigateTo('/second');
+        navigateTo('/first');
+        angular.mock.inject(function($location) {
+          expect($location.path()).toBe('/first');
+        });
+      });
+    });
+        
+    //TODO(otupman): this is copy and paste from above; should make it better.
+    describe('with sections and articles', function() {
+      beforeEach(function() {  
+        navigateTo('/first/article');
+        navigateTo('/second/article');
+        navigateTo('/third/article');
+      });
+      
+      it('should go back twice - AppRouter.instance.back()', function() {
+        AppRouter.instance.back();        
+        AppRouter.instance.back();
+        
+        angular.mock.inject(function($location) {
+          expect($location.path()).toBe('/first/article');
+        });  
+      });
+  
+      it('should go back twice - navigateTo', function() {
+        navigateTo('/second/article');
+        navigateTo('/first/article');
+        angular.mock.inject(function($location) {
+          expect($location.path()).toBe('/first/article');
+        });
+      });
+    });
+    
+    //TODO(otupman): More copy paste? Ow, my eyes!
+    describe('with sections and articles AND IDs', function() {
+      beforeEach(function() {  
+        navigateTo('/first/article/1');
+        navigateTo('/second/article/2');
+        navigateTo('/third/article/3');
+      });
+      
+      it('should go back twice - AppRouter.instance.back()', function() {
+        AppRouter.instance.back();        
+        AppRouter.instance.back();
+        
+        angular.mock.inject(function($location) {
+          expect($location.path()).toBe('/first/article/1');
+        });  
+      });
+  
+      it('should go back twice - navigateTo', function() {
+        navigateTo('/second/article/2');
+        navigateTo('/first/article/1');
+        angular.mock.inject(function($location) {
+          expect($location.path()).toBe('/first/article/1');
+        });
+      });
+    });
   });
 
   describe('Moving forwards', function() {
